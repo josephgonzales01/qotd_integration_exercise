@@ -66,4 +66,8 @@ payload map ((payload01 , indexOfPayload01) -> {
 })]]></dw:set-payload>
         </dw:transform-message>
     </flow>
+    <flow name="addFlights_flow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/quotes" allowedMethods="POST" doc:name="HTTP"/>
+        <set-payload value="{&quot;messages&quot;:&quot;Flights added but not really&quot;}" doc:name="Set Payload"/>
+    </flow>
 </mule>
