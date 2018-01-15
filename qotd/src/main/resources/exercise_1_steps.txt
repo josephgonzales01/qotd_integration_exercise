@@ -1,0 +1,30 @@
+1.) Call QOTD Web Service - http://quotes.rest/qod.json
+
+2.) Write to File System
+Filename is in this format QOTD_MMDDYY.TXT
+Line 1 should contain English Quote<space>Author<space>Date
+Line 1 Date Format (MMDDYYYY)
+
+3.) Pick 6 Languages
+Using the chosen 6 languages to Translate in Google Translate / Similar WS
+
+4.) Compress the translated quotes/responses
+Remove spaces from the translated quote
+Remember where the original spaces are (indexes)
+
+5.) Create a JSON Map that will contain the following:
+Compressed Translated Quote 
+Indexes of the Spaces
+
+6.) - Publish the JSON to the Topic
+
+
+7.)  Subscribe to the Topic
+
+8.) Write to File the Compressed Translated Quote
+From 2nd Line to 7th Line of File should contain the Quotes
+Format is Translated_Quote<space>UNIXTIME
+
+9.) Decompress i.e. return the spaces of the Compressed Translated Quote
+
+10.)  Log to Console each Decompressed Translated Quote to check if it is correct

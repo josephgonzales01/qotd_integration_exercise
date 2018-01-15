@@ -1,0 +1,24 @@
+{
+    "success": {
+        "total": 1
+    },
+    "contents": {
+        "quotes": [
+            {
+                "quote": "One does not accumulate but eliminate .\r\nIt is not daily increase but daily\r\ndecrease. The height of cultivation\r\nalways runs to simplicity.",
+                "author": "Bruce Lee",
+                "length": "140",
+                "tags": [
+                    "accumulate",
+                    "inspire",
+                    "simplicity"
+                ],
+                "category": "inspire",
+                "title": "Inspiring Quote of the day",
+                "date": "2018-01-15",
+                "id": null
+            }
+        ],
+        "copyright": "2017-19 theysaidso.com"
+    }
+}
