@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+<mule xmlns:context="http://www.springframework.org/schema/context" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:http="http://www.mulesoft.org/schema/mule/http"
 	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
 	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" 
@@ -10,7 +10,10 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
-http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd">
+    <http:request-config name="HTTP_translate_quotes_via_yandex_req_config" protocol="HTTPS" host="translate.yandex.net" port="443" doc:name="HTTP Request Configuration" basePath="/api/v1.5/tr.json"/>
+    <context:property-placeholder location="app-${env}.properties"/>
     <flow name="get-game-of_thrones-quote-flow">        
         <http:request config-ref="HTTP_quotes_from_got_req_config" path="/" method="GET" doc:name="Get Quote from GOT via HTTP Rest"/>
         <dw:transform-message doc:name="Transform Message" metadata:id="c0cffca8-c69d-46d2-8099-faa96ebaf90d">
@@ -35,7 +38,24 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 	column_1: payload.author,
 	column_2: now as :string {format: "MMddyyyy"}
 }]]]></dw:set-payload>
+            <dw:set-variable variableName="var_quote"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.quote]]></dw:set-variable>
+            <dw:set-variable variableName="var_author"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.author]]></dw:set-variable>
         </dw:transform-message>
         <file:outbound-endpoint path="/Users/josephgonzales/Documents" outputPattern="#['QOTD_'+server.dateTime.format('MMddyy')].txt" responseTimeout="10000" doc:name="File"/>
+    </flow>
+    <flow name="translate_quote_flow">
+        <http:request config-ref="HTTP_translate_quotes_via_yandex_req_config" path="/translate" method="GET" doc:name="HTTP">
+            <http:request-builder>
+                <http:query-param paramName="key" value="${yandex.key}"/>
+                <http:query-param paramName="text" value="#[flowVars.var_quote]"/>
+                <http:query-param paramName="lang" value="en-fr"/>
+            </http:request-builder>
+        </http:request>
     </flow>
 </mule>
