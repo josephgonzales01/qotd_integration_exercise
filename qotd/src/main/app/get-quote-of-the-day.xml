@@ -13,7 +13,6 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
 http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd">
     <http:request-config name="HTTP_translate_quotes_via_yandex_req_config" protocol="HTTPS" host="translate.yandex.net" port="443" doc:name="HTTP Request Configuration" basePath="/api/v1.5/tr.json"/>
-    <context:property-placeholder location="app-${env}.properties"/>
     <flow name="get-game-of_thrones-quote-flow">        
         <http:request config-ref="HTTP_quotes_from_got_req_config" path="/" method="GET" doc:name="Get Quote from GOT via HTTP Rest"/>
         <dw:transform-message doc:name="Transform Message" metadata:id="c0cffca8-c69d-46d2-8099-faa96ebaf90d">
