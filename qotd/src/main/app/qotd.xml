@@ -20,5 +20,6 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
             <http:response-builder statusCode="200"/>
         </http:listener>
         <flow-ref name="get-game-of_thrones-quote-flow" doc:name="get-game-of_thrones-quote-flow"/>
+        <flow-ref name="write_to_file_flow" doc:name="write_to_file_flow"/>
     </flow>
 </mule>
