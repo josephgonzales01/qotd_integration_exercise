@@ -10,7 +10,7 @@ Using the chosen 6 languages to Translate in Google Translate / Similar WS
 
 4.) Compress the translated quotes/responses
 Remove spaces from the translated quote
-Remember where the original spaces are (indexes)
+Remember where the original spaces are (indexes), repeat 3-4 untill all translation covered
 
 5.) Create a JSON Map that will contain the following:
 Compressed Translated Quote 

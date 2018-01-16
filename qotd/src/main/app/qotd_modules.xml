@@ -49,12 +49,22 @@ payload.character]]></dw:set-variable>
         <file:outbound-endpoint path="/Users/josephgonzales/Documents" outputPattern="#['QOTD_'+server.dateTime.format('MMddyy')].txt" responseTimeout="10000" doc:name="File"/>
     </flow>
     <flow name="translate_quote_flow">
-        <http:request config-ref="HTTP_yandex_translate_req_config" path="/translate" method="GET" doc:name="HTTP">
-            <http:request-builder>
-                <http:query-param paramName="key" value="${yandex.key}"/>
-                <http:query-param paramName="text" value="#[flowVars.var_quote]"/>
-                <http:query-param paramName="lang" value="#[flowVars.var_lang]"/>
-            </http:request-builder>
-        </http:request>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+
+p('yandex.lang') splitBy ","]]></dw:set-payload>
+        </dw:transform-message>
+        <foreach collection="#[]" rootMessageVariableName="RootMessage" doc:name="For Each language">
+            <logger message="Current langauge: #[payload]" level="INFO" doc:name="Logger"/>
+            <http:request config-ref="HTTP_yandex_translate_req_config" path="/translate" method="GET" doc:name="HTTP">
+                <http:request-builder>
+                    <http:query-param paramName="key" value="${yandex.key}"/>
+                    <http:query-param paramName="text" value="#[flowVars.var_quote]"/>
+                    <http:query-param paramName="lang" value="#[payload]"/>
+                </http:request-builder>
+            </http:request>
+        </foreach>
     </flow>
 </mule>
