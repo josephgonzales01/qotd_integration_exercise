@@ -24,6 +24,14 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 	quote: payload.quote,
 	author: payload.character
 }]]></dw:set-payload>
+            <dw:set-variable variableName="var_quote"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.quote]]></dw:set-variable>
+            <dw:set-variable variableName="var_author"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.character]]></dw:set-variable>
         </dw:transform-message>
     </flow>
     <flow name="write_to_file_flow">
@@ -33,27 +41,19 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 %output application/csv separator = " ", header=false, quoteValues=true
 ---
 [{
-	column_0: payload.quote,
-	column_1: payload.author,
+	column_0: flowVars.var_quote,
+	column_1: flowVars.var_author,
 	column_2: now as :string {format: "MMddyyyy"}
 }]]]></dw:set-payload>
-            <dw:set-variable variableName="var_quote"><![CDATA[%dw 1.0
-%output application/java
----
-payload.quote]]></dw:set-variable>
-            <dw:set-variable variableName="var_author"><![CDATA[%dw 1.0
-%output application/java
----
-payload.author]]></dw:set-variable>
         </dw:transform-message>
         <file:outbound-endpoint path="/Users/josephgonzales/Documents" outputPattern="#['QOTD_'+server.dateTime.format('MMddyy')].txt" responseTimeout="10000" doc:name="File"/>
     </flow>
     <flow name="translate_quote_flow">
-        <http:request config-ref="HTTP_translate_quotes_via_yandex_req_config" path="/translate" method="GET" doc:name="HTTP">
+        <http:request config-ref="HTTP_yandex_translate_req_config" path="/translate" method="GET" doc:name="HTTP">
             <http:request-builder>
                 <http:query-param paramName="key" value="${yandex.key}"/>
                 <http:query-param paramName="text" value="#[flowVars.var_quote]"/>
-                <http:query-param paramName="lang" value="en-fr"/>
+                <http:query-param paramName="lang" value="#[flowVars.var_lang]"/>
             </http:request-builder>
         </http:request>
     </flow>

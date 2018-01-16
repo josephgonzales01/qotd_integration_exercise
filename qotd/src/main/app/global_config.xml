@@ -16,9 +16,9 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 		host="got-quotes.herokuapp.com" doc:name="HTTP Request Configuration"
 		port="443" basePath="/quotes" protocol="HTTPS" />
 
-	<http:request-config name="HTTP_translate_quotes_via_yandex_req_config"
-		protocol="HTTPS" host="translate.yandex.net" port="443"
-		doc:name="HTTP Request Configuration" basePath="/api/v1.5/tr.json" />
+	<http:request-config name="HTTP_yandex_translate_req_config"
+		protocol="HTTPS" host="${yandex.host}" port="${yandex.port}"
+		doc:name="HTTP Request Configuration" basePath="${yandex.basePath}" />
 
 	<context:property-placeholder location="app-${env}.properties" />
 
