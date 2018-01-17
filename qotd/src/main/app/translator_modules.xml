@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+
+	<sub-flow name="translate_flow">
+		<logger message="Current langauge: #[payload]" level="INFO"
+			doc:name="Logger" />
+		<http:request config-ref="HTTP_yandex_translate_req_config"
+			path="/translate" method="GET" doc:name="HTTP request to yandex">
+			<http:request-builder>
+				<http:query-param paramName="key" value="${yandex.key}" />
+				<http:query-param paramName="text" value="#[flowVars.var_quote]" />
+				<http:query-param paramName="lang" value="#[payload]" />
+			</http:request-builder>
+		</http:request>
+	</sub-flow>
+    <sub-flow name="get_languages_flow">
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+p('yandex.lang') splitBy ","]]></dw:set-payload>
+        </dw:transform-message>
+    </sub-flow>
+</mule>
