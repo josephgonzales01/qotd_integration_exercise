@@ -35,8 +35,7 @@ payload.character]]></dw:set-variable>
         </dw:transform-message>
     </flow>
     <flow name="write_to_file_flow">
-        <dw:transform-message doc:name="Transform Message" metadata:id="fa7ea8ad-6bba-405e-9f42-a178623a51ad">
-            <dw:input-payload mimeType="application/json" doc:sample="quote_output.json"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="56ad83d5-556a-418d-8389-802f9d78f902">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/csv separator = " ", header=false, quoteValues=true
 ---
@@ -56,15 +55,34 @@ payload.character]]></dw:set-variable>
 
 p('yandex.lang') splitBy ","]]></dw:set-payload>
         </dw:transform-message>
-        <foreach collection="#[]" rootMessageVariableName="RootMessage" doc:name="For Each language">
-            <logger message="Current langauge: #[payload]" level="INFO" doc:name="Logger"/>
-            <http:request config-ref="HTTP_yandex_translate_req_config" path="/translate" method="GET" doc:name="HTTP">
-                <http:request-builder>
-                    <http:query-param paramName="key" value="${yandex.key}"/>
-                    <http:query-param paramName="text" value="#[flowVars.var_quote]"/>
-                    <http:query-param paramName="lang" value="#[payload]"/>
-                </http:request-builder>
-            </http:request>
+        <set-variable variableName="var_compressList" value="#[[]]" doc:name="var_compressList"/>
+        <foreach collection="#[payload]" rootMessageVariableName="RootMessage" doc:name="For Each language">
+            <flow-ref name="translate_flow" doc:name="translate_flow"/>
+            <flow-ref name="compress_collect_flow" doc:name="compress_collect"/>
         </foreach>
     </flow>
+    <sub-flow name="translate_flow">
+        <logger message="Current langauge: #[payload]" level="INFO" doc:name="Logger"/>
+        <http:request config-ref="HTTP_yandex_translate_req_config" path="/translate" method="GET" doc:name="HTTP request to yandex">
+            <http:request-builder>
+                <http:query-param paramName="key" value="${yandex.key}"/>
+                <http:query-param paramName="text" value="#[flowVars.var_quote]"/>
+                <http:query-param paramName="lang" value="#[payload]"/>
+            </http:request-builder>
+        </http:request>
+    </sub-flow>
+    <sub-flow name="compress_collect_flow">
+        <dw:transform-message doc:name="Transform Message" metadata:id="071ca266-470f-4844-b0a8-82c66222f495">
+            <dw:input-payload mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	compress: payload.text[0] replace " " with "",
+	indexes: payload.text[0] find " "
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <logger message=" compressed quotes: #[payload.compress]     indexes of whitespace: #[payload.indexes]" level="INFO" doc:name="Logger"/>
+        <expression-component doc:name="collect compress"><![CDATA[flowVars.var_compressList.add(payload)]]></expression-component>
+    </sub-flow>
 </mule>
