@@ -57,29 +57,31 @@ payload.character]]></dw:set-variable>
 	</flow>
 	<flow name="translate_quote_flow">
         <flow-ref name="get_languages_flow" doc:name="get_languages_flow"/>
-		<set-variable variableName="var_compressList" value="#[[]]"
-			doc:name="var_compressList" />
+        <set-variable variableName="var_compressList" value="#[[]]" doc:name="var_compressList"/>
 		<foreach collection="#[payload]" rootMessageVariableName="RootMessage"
 			doc:name="For Each language">
             <flow-ref name="translate_flow" doc:name="translate_flow"/>
 			<flow-ref name="compress_collect_flow" doc:name="compress_collect" />
 		</foreach>
-		<json:object-to-json-transformer
-			doc:name="Object to JSON" />
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+flowVars.var_compressList map $]]></dw:set-payload>
+        </dw:transform-message>
 	</flow>
 
 	<sub-flow name="compress_collect_flow">
-		<dw:transform-message doc:name="Transform Message"
-			metadata:id="071ca266-470f-4844-b0a8-82c66222f495">
-			<dw:input-payload mimeType="application/json" />
-			<dw:set-payload><![CDATA[%dw 1.0
+        <dw:transform-message doc:name="Transform Message" metadata:id="071ca266-470f-4844-b0a8-82c66222f495">
+            <dw:input-payload mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
 %output application/java
 ---
 {
 	compress: payload.text[0] replace " " with "",
 	indexes: payload.text[0] find " "
 }]]></dw:set-payload>
-		</dw:transform-message>
+        </dw:transform-message>
 		<logger
 			message=" compressed quotes: #[payload.compress]     indexes of whitespace: #[payload.indexes]"
 			level="INFO" doc:name="Logger" />
