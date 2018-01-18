@@ -24,8 +24,9 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
         <dw:transform-message doc:name="Transform Message">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/java
+%var lang=flowVars.var_lang
 ---
-p('yandex.lang') splitBy ","]]></dw:set-payload>
+[lang] when (lang!=null and lang!="") otherwise p('yandex.lang') splitBy ","]]></dw:set-payload>
         </dw:transform-message>
     </sub-flow>
 </mule>

@@ -318,7 +318,7 @@
           </org.mule.tooling.metadata.cache.DefaultMetadataCacheEntry>
         </entry>
         <entry>
-          <string>SELECT * FROM american</string>
+          <string>SELECT * FROM american WHERE ID=#[message.inboundProperties.&apos;http.uri.params&apos;.id]</string>
           <org.mule.tooling.metadata.cache.DefaultMetadataCacheEntry>
             <output class="org.mule.common.metadata.DefaultMetaData">
               <payload class="org.mule.common.metadata.DefaultListMetaDataModel">
@@ -630,7 +630,7 @@
           </org.mule.tooling.metadata.cache.DefaultMetadataCacheEntry>
         </entry>
         <entry>
-          <string>SELECT * FROM american WHERE ID=#[message.inboundProperties.&apos;http.uri.params&apos;.id]</string>
+          <string>SELECT * FROM american</string>
           <org.mule.tooling.metadata.cache.DefaultMetadataCacheEntry>
             <output class="org.mule.common.metadata.DefaultMetaData">
               <payload class="org.mule.common.metadata.DefaultListMetaDataModel">
