@@ -19,7 +19,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 	<flow name="get-game-of_thrones-quote-flow">
 		<http:request config-ref="HTTP_quotes_from_got_req_config"
 			path="/" method="GET" doc:name="Get Quote from GOT via HTTP Rest" />
-		<dw:transform-message doc:name="Transform Message"
+		<dw:transform-message doc:name="Transform to qotd json format"
 			metadata:id="c0cffca8-c69d-46d2-8099-faa96ebaf90d">
 			<dw:input-payload mimeType="application/json" />
 			<dw:set-payload><![CDATA[%dw 1.0
@@ -40,7 +40,7 @@ payload.character]]></dw:set-variable>
 		</dw:transform-message>
 	</flow>
 	<flow name="write_to_file_flow">
-		<dw:transform-message doc:name="Transform Message"
+		<dw:transform-message doc:name="Transform to qotd csv format"
 			metadata:id="56ad83d5-556a-418d-8389-802f9d78f902">
 			<dw:set-payload><![CDATA[%dw 1.0
 %output application/csv separator = " ", header=false, quoteValues=true
@@ -51,9 +51,9 @@ payload.character]]></dw:set-variable>
 	column_2: now as :string {format: "MMddyyyy"}
 }]]]></dw:set-payload>
 		</dw:transform-message>
-		<file:outbound-endpoint path="/Users/josephgonzales/Documents"
+		<file:outbound-endpoint path="/Users/joseph.gonzales/Documents"
 			outputPattern="#['QOTD_'+server.dateTime.format('MMddyy')].txt"
-			responseTimeout="10000" doc:name="File" />
+			responseTimeout="10000" doc:name="write to file" />
 	</flow>
 	<flow name="translate_quote_flow">
         <flow-ref name="get_languages_flow" doc:name="get_languages_flow"/>
@@ -63,7 +63,7 @@ payload.character]]></dw:set-variable>
             <flow-ref name="translate_flow" doc:name="translate_flow"/>
 			<flow-ref name="compress_collect_flow" doc:name="compress_collect" />
 		</foreach>
-        <dw:transform-message doc:name="Transform Message">
+        <dw:transform-message doc:name="var_compressList to json map">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/json
 ---
@@ -72,7 +72,7 @@ flowVars.var_compressList map $]]></dw:set-payload>
 	</flow>
 
 	<sub-flow name="compress_collect_flow">
-        <dw:transform-message doc:name="Transform Message" metadata:id="071ca266-470f-4844-b0a8-82c66222f495">
+        <dw:transform-message doc:name="Compress quotes" metadata:id="071ca266-470f-4844-b0a8-82c66222f495">
             <dw:input-payload mimeType="application/json"/>
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/java
@@ -87,4 +87,29 @@ flowVars.var_compressList map $]]></dw:set-payload>
 			level="INFO" doc:name="Logger" />
 		<expression-component doc:name="collect compress"><![CDATA[flowVars.var_compressList.add(payload)]]></expression-component>
 	</sub-flow>
+    <sub-flow name="publish_qotd_topic_flow">
+        <flow-ref name="jms_publish_qotd_topic_flow" doc:name="jms_publish_qotd_topic_flow"/>
+        <set-variable variableName="var_jms_msg_list" value="#[[]]" doc:name="Variable JMS msg list"/>
+        <foreach doc:name="For Each" collection="#[payload]">
+            <flow-ref name="bytesArray_to_string_flow" doc:name="byteArray_to_string_flow"/>
+            <expression-component doc:name="collect each item from byte array"><![CDATA[flowVars.var_jms_msg_list.add(payload)]]></expression-component>
+        </foreach>
+        <dw:transform-message doc:name="var_jms_msg_list to json map">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+flowVars.var_jms_msg_list map $]]></dw:set-payload>
+        </dw:transform-message>
+    </sub-flow>
+    <sub-flow name="subscribe_qotd_topic_flow">
+        <flow-ref name="jms_subscribe_qotd_topic_flow" doc:name="subscribe_qtod_topic_flow"/>
+        <foreach doc:name="For Each" collection="#[payload]">
+            <flow-ref name="bytesArray_to_string_flow" doc:name="byteArray_to_string_flow"/>
+            <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        </foreach>
+    </sub-flow>
+    <sub-flow name="bytesArray_to_string_flow">
+        <byte-array-to-string-transformer  doc:name="Byte Array to String" encoding="UTF-16" mimeType="text/json"/>
+        <logger level="INFO" doc:name="Log result from bytearray to string" message="#[payload]"/>
+    </sub-flow>
 </mule>

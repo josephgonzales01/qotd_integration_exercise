@@ -7,11 +7,10 @@
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
-    <flow name="jms_get_topic_flow">
-        <jms:inbound-endpoint topic="${jms.topic}" connector-ref="Active_MQ" doc:name="JMS"/>
-        <logger message="jms message: #[payload]" level="INFO" doc:name="Logger"/>
-    </flow>
-    <flow name="jms_publish_topic_flow">
-        <jms:outbound-endpoint topic="${jms.topic}" connector-ref="Active_MQ" doc:name="JMS"/>
+    <sub-flow name="jms_subscribe_qotd_topic_flow">
+        <jms:outbound-endpoint topic="${jms.topic}" connector-ref="Active_MQ" doc:name="JMS subscribe to qotd topic"/>
+    </sub-flow>
+    <flow name="jms_publish_qotd_topic_flow">
+        <jms:outbound-endpoint topic="${jms.topic}" connector-ref="Active_MQ" doc:name="JMS publish qotd topic"/>
     </flow>
 </mule>

@@ -17,9 +17,10 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
         <http:listener config-ref="HTTP_Listener_Configuration" path="/quotes" doc:name="HTTP" allowedMethods="GET">
             <http:response-builder statusCode="200"/>
         </http:listener>
-        <set-variable variableName="var_lang" value="#[message.inboundProperties.'http.query.params'.lang]" doc:name="Variable"/>
+        <set-variable variableName="var_lang" value="#[message.inboundProperties.'http.query.params'.lang]" doc:name="Variable for language request param"/>
         <flow-ref name="get-game-of_thrones-quote-flow" doc:name="get-game-of_thrones-quote-flow"/>
         <flow-ref name="write_to_file_flow" doc:name="write_to_file_flow"/>
         <flow-ref name="translate_quote_flow" doc:name="translate_quote_flow"/>
+        <flow-ref name="publish_qotd_topic_flow" doc:name="publish_qotd_topic_flow"/>
     </flow>
 </mule>
