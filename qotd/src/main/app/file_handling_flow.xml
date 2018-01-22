@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+    <sub-flow name="write_qotd_file_flow">
+        <dw:transform-message doc:name="Transform to qotd csv format" metadata:id="56ad83d5-556a-418d-8389-802f9d78f902">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/csv separator = " ", header=false, quoteValues=true
+---
+[{
+	column_0: flowVars.var_quote,
+	column_1: flowVars.var_author,
+	column_2: now as :string {format: "MMddyyyy"}
+}]]]></dw:set-payload>
+        </dw:transform-message>
+        <file:outbound-endpoint path="/Users/joseph.gonzales/Documents" outputPattern="#['QOTD_'+server.dateTime.format('MMddyy')].txt" responseTimeout="10000" doc:name="write to file"/>
+        <expression-component doc:name="file write status update"><![CDATA[flowVars.var_file_written=true]]></expression-component>
+    </sub-flow>
+</mule>

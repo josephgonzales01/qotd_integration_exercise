@@ -38,23 +38,6 @@ payload.quote]]></dw:set-variable>
 payload.character]]></dw:set-variable>
 		</dw:transform-message>
 	</flow>
-	<flow name="write_to_file_flow">
-		<dw:transform-message doc:name="Transform to qotd csv format"
-			metadata:id="56ad83d5-556a-418d-8389-802f9d78f902">
-			<dw:set-payload><![CDATA[%dw 1.0
-%output application/csv separator = " ", header=false, quoteValues=true
----
-[{
-	column_0: flowVars.var_quote,
-	column_1: flowVars.var_author,
-	column_2: now as :string {format: "MMddyyyy"}
-}]]]></dw:set-payload>
-		</dw:transform-message>
-		<file:outbound-endpoint path="/Users/joseph.gonzales/Documents"
-			outputPattern="#['QOTD_'+server.dateTime.format('MMddyy')].txt"
-			responseTimeout="10000" doc:name="write to file" />
-        <expression-component doc:name="file write status update"><![CDATA[flowVars.var_file_written=true]]></expression-component>
-	</flow>
 	<flow name="translate_quote_flow">
         <flow-ref name="get_languages_flow" doc:name="get_languages_flow"/>
         <set-variable variableName="var_compressList" value="#[[]]" doc:name="var_compressList"/>
