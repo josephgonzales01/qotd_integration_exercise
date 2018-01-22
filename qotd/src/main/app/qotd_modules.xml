@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:json="http://www.mulesoft.org/schema/mule/json"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata"
-	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
 	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
-http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
-http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
-http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
-http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+    <sub-flow name="init_common_variables_flow">
+        <set-variable variableName="var_lang" value="#[message.inboundProperties.'http.query.params'.lang]" doc:name="Variable for language request param"/>
+        <set-variable variableName="var_file_written" value="false" doc:name="Variable for file write status"/>
+        <set-variable variableName="var_jms_published" value="false" doc:name="Variable for jms publish status"/>
+    </sub-flow>
 
 	<flow name="get-game-of_thrones-quote-flow">
 		<http:request config-ref="HTTP_quotes_from_got_req_config"
@@ -54,6 +53,7 @@ payload.character]]></dw:set-variable>
 		<file:outbound-endpoint path="/Users/joseph.gonzales/Documents"
 			outputPattern="#['QOTD_'+server.dateTime.format('MMddyy')].txt"
 			responseTimeout="10000" doc:name="write to file" />
+        <expression-component doc:name="file write status update"><![CDATA[flowVars.var_file_written=true]]></expression-component>
 	</flow>
 	<flow name="translate_quote_flow">
         <flow-ref name="get_languages_flow" doc:name="get_languages_flow"/>
@@ -74,7 +74,8 @@ payload.character]]></dw:set-variable>
 ---
 {
 	compress: payload.text[0] replace " " with "",
-	indexes: payload.text[0] find " "
+	indexes: payload.text[0] find " ",
+	author: flowVars.var_author
 }]]></dw:set-payload>
         </dw:transform-message>
 		<logger
@@ -84,21 +85,18 @@ payload.character]]></dw:set-variable>
 	</sub-flow>
     <sub-flow name="publish_qotd_topic_flow">
         <flow-ref name="jms_publish_qotd_topic_flow" doc:name="jms_publish_qotd_topic_flow"/>
+        <expression-component doc:name="jms publish status"><![CDATA[flowVars.var_jms_published=true;]]></expression-component>
         <set-payload value="{
-   &quot;status&quot;: &quot;jms success&quot;,\n
-   &quot;message&quot;:\n
-    #[payload]\n
-}" doc:name="jms result as payload"/>
+   &quot;file_written&quot;: #[flowVars.var_file_written],
+   &quot;jms_published&quot;:  #[flowVars.var_jms_published],
+   &quot;message&quot;:
+    #[payload]
+}" mimeType="text/json" doc:name="jms result as payload"/>
     </sub-flow>
     <sub-flow name="subscribe_qotd_topic_flow">
         <flow-ref name="jms_subscribe_qotd_topic_flow" doc:name="subscribe_qtod_topic_flow"/>
         <foreach doc:name="For Each" collection="#[payload]">
-            <flow-ref name="bytesArray_to_string_flow" doc:name="byteArray_to_string_flow"/>
             <logger message="#[payload]" level="INFO" doc:name="Logger"/>
         </foreach>
-    </sub-flow>
-    <sub-flow name="bytesArray_to_string_flow">
-        <byte-array-to-string-transformer  doc:name="Byte Array to String" encoding="UTF-16" mimeType="text/json"/>
-        <logger level="INFO" doc:name="Log result from bytearray to string" message="#[payload]"/>
     </sub-flow>
 </mule>
