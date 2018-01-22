@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
-    <sub-flow name="jms_subscribe_qotd_topic_flow">
-        <jms:outbound-endpoint topic="${jms.topic}" connector-ref="Active_MQ" doc:name="JMS subscribe to qotd topic"/>
-    </sub-flow>
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+    <flow name="jms_subscribe_qotd_topic_flow">
+        <jms:inbound-endpoint topic="${jms.topic}" connector-ref="Active_MQ" doc:name="JMS subscribe qotd topic"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+    </flow>
     <flow name="jms_publish_qotd_topic_flow">
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
         <jms:outbound-endpoint topic="${jms.topic}" connector-ref="Active_MQ" doc:name="JMS publish qotd topic"/>
     </flow>
 </mule>

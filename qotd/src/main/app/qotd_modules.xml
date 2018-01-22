@@ -61,14 +61,9 @@ payload.character]]></dw:set-variable>
 		<foreach collection="#[payload]" rootMessageVariableName="RootMessage"
 			doc:name="For Each language">
             <flow-ref name="translate_flow" doc:name="translate_flow"/>
-			<flow-ref name="compress_collect_flow" doc:name="compress_collect" />
+			<flow-ref name="compress_collect_flow" doc:name="compress_collect_flow" />
 		</foreach>
-        <dw:transform-message doc:name="var_compressList to json map">
-            <dw:set-payload><![CDATA[%dw 1.0
-%output application/json
----
-flowVars.var_compressList map $]]></dw:set-payload>
-        </dw:transform-message>
+        <set-payload value="#[flowVars.var_compressList]" doc:name="Set compress list as Payload"/>
 	</flow>
 
 	<sub-flow name="compress_collect_flow">
@@ -89,17 +84,11 @@ flowVars.var_compressList map $]]></dw:set-payload>
 	</sub-flow>
     <sub-flow name="publish_qotd_topic_flow">
         <flow-ref name="jms_publish_qotd_topic_flow" doc:name="jms_publish_qotd_topic_flow"/>
-        <set-variable variableName="var_jms_msg_list" value="#[[]]" doc:name="Variable JMS msg list"/>
-        <foreach doc:name="For Each" collection="#[payload]">
-            <flow-ref name="bytesArray_to_string_flow" doc:name="byteArray_to_string_flow"/>
-            <expression-component doc:name="collect each item from byte array"><![CDATA[flowVars.var_jms_msg_list.add(payload)]]></expression-component>
-        </foreach>
-        <dw:transform-message doc:name="var_jms_msg_list to json map">
-            <dw:set-payload><![CDATA[%dw 1.0
-%output application/java
----
-flowVars.var_jms_msg_list map $]]></dw:set-payload>
-        </dw:transform-message>
+        <set-payload value="{
+   &quot;status&quot;: &quot;jms success&quot;,\n
+   &quot;message&quot;:\n
+    #[payload]\n
+}" doc:name="jms result as payload"/>
     </sub-flow>
     <sub-flow name="subscribe_qotd_topic_flow">
         <flow-ref name="jms_subscribe_qotd_topic_flow" doc:name="subscribe_qtod_topic_flow"/>
