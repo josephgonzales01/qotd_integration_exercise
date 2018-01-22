@@ -22,7 +22,7 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
 		doc:name="HTTP Request Configuration" basePath="${yandex.basePath}" />
 
 	<context:property-placeholder location="app-${env}.properties" />
-    <jms:activemq-connector name="Active_MQ" specification="1.1" brokerURL="${jms.broker}" validateConnections="true" doc:name="Active MQ"/>
+    <jms:activemq-connector name="Active_MQ" specification="1.1" brokerURL="${jms.broker}" validateConnections="true" doc:name="Active MQ" password="${jms.password}" username="${jms.user}"/>
 
 
 </mule>
