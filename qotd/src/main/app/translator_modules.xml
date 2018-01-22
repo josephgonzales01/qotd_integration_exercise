@@ -11,6 +11,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 	<sub-flow name="translate_flow">
 		<logger message="Current langauge: #[payload]" level="INFO"
 			doc:name="Logger" />
+        <set-variable variableName="var_current_lang" value="#[payload]" doc:name="Variable for current language"/>
 		<http:request config-ref="HTTP_yandex_translate_req_config"
 			path="/translate" method="GET" doc:name="HTTP request to yandex">
 			<http:request-builder>

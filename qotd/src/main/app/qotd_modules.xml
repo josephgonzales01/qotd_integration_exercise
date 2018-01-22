@@ -58,28 +58,21 @@ payload.character]]></dw:set-variable>
 {
 	compress: payload.text[0] replace " " with "",
 	indexes: payload.text[0] find " ",
-	author: flowVars.var_author
+	author: flowVars.var_author,
+	language: flowVars.var_current_lang
 }]]></dw:set-payload>
         </dw:transform-message>
 		<logger
 			message=" compressed quotes: #[payload.compress]     indexes of whitespace: #[payload.indexes]"
 			level="INFO" doc:name="Logger" />
-		<expression-component doc:name="collect compress"><![CDATA[flowVars.var_compressList.add(payload)]]></expression-component>
+		<expression-component doc:name="collect compressed quotes"><![CDATA[flowVars.var_compressList.add(payload)]]></expression-component>
 	</sub-flow>
     <sub-flow name="publish_qotd_topic_flow">
         <flow-ref name="jms_publish_qotd_topic_flow" doc:name="jms_publish_qotd_topic_flow"/>
         <expression-component doc:name="jms publish status"><![CDATA[flowVars.var_jms_published=true;]]></expression-component>
-        <set-payload value="{
-   &quot;file_written&quot;: #[flowVars.var_file_written],
-   &quot;jms_published&quot;:  #[flowVars.var_jms_published],
-   &quot;message&quot;:
-    #[payload]
-}" mimeType="text/json" doc:name="jms result as payload"/>
-    </sub-flow>
-    <sub-flow name="subscribe_qotd_topic_flow">
-        <flow-ref name="jms_subscribe_qotd_topic_flow" doc:name="subscribe_qtod_topic_flow"/>
-        <foreach doc:name="For Each" collection="#[payload]">
-            <logger message="#[payload]" level="INFO" doc:name="Logger"/>
-        </foreach>
+        <set-payload value="{    
+	&quot;file_written&quot;: #[flowVars.var_file_written],
+     &quot;jms_published&quot;:  #[flowVars.var_jms_published], 
+     &quot;message&quot;:     #[payload] }" mimeType="text/json" doc:name="jms result as payload"/>
     </sub-flow>
 </mule>

@@ -15,7 +15,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 	column_2: now as :string {format: "MMddyyyy"}
 }]]]></dw:set-payload>
         </dw:transform-message>
-        <file:outbound-endpoint path="/Users/joseph.gonzales/Documents" outputPattern="#['QOTD_'+server.dateTime.format('MMddyy')].txt" responseTimeout="10000" doc:name="write to file"/>
+        <file:outbound-endpoint path="/Users/joseph.gonzales/Documents" outputPattern="#['QOTD_'+server.dateTime.format('MMddyy')].txt" responseTimeout="10000" doc:name="write qotd quotes to file"/>
         <expression-component doc:name="file write status update"><![CDATA[flowVars.var_file_written=true]]></expression-component>
     </sub-flow>
 </mule>
