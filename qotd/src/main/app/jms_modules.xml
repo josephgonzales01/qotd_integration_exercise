@@ -14,7 +14,14 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
     <flow name="jms_subscribe_qotd_topic_flow">
         <jms:inbound-endpoint topic="${jms.topic}" connector-ref="Active_MQ" doc:name="JMS subscribe qotd topic"/>
         <logger message="#[payload]" level="INFO" doc:name="Logger"/>
-        <dw:transform-message doc:name="Transform Message" metadata:id="665efb1c-81aa-437c-88fa-d9057ec26be5">
+        <flow-ref name="uncompress_and_write_to_file_flow" doc:name="uncompress_and_write_to_file_flow"/>
+    </flow>
+    <flow name="jms_publish_qotd_topic_flow">
+        <json:object-to-json-transformer doc:name="Object to JSON" mimeType="text/json"/>
+        <jms:outbound-endpoint topic="${jms.topic}" connector-ref="Active_MQ" doc:name="JMS publish qotd topic"/>
+    </flow>
+    <sub-flow name="uncompress_and_write_to_file_flow">
+        <dw:transform-message doc:name="uncompress message and transform to csv format" metadata:id="665efb1c-81aa-437c-88fa-d9057ec26be5">
             <dw:input-payload mimeType="application/json"/>
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/csv separator = " " , header = false
@@ -26,9 +33,5 @@ payload map ((payload01 , indexOfPayload01) -> {
 })]]></dw:set-payload>
         </dw:transform-message>
         <file:outbound-endpoint path="/Users/joseph.gonzales/Documents" outputPattern="#['Translated_quotes_'+server.dateTime.format('MMddyy')].txt" responseTimeout="10000" doc:name="Write translated quotes to file "/>
-    </flow>
-    <flow name="jms_publish_qotd_topic_flow">
-        <json:object-to-json-transformer doc:name="Object to JSON" mimeType="text/json"/>
-        <jms:outbound-endpoint topic="${jms.topic}" connector-ref="Active_MQ" doc:name="JMS publish qotd topic"/>
-    </flow>
+    </sub-flow>
 </mule>

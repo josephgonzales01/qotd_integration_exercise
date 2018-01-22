@@ -17,7 +17,7 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
         <http:listener config-ref="HTTP_Listener_Configuration" path="/quotes" doc:name="HTTP" allowedMethods="GET">
             <http:response-builder statusCode="200"/>
         </http:listener>
-        <flow-ref name="init_common_variables_flow" doc:name="initialize common variables"/>
+        <flow-ref name="init_common_variables_flow" doc:name="init_common_variables_flow"/>
         <flow-ref name="get-game-of_thrones-quote-flow" doc:name="get-game-of_thrones-quote-flow"/>
         <flow-ref name="write_qotd_file_flow" doc:name="write_qotd_file_flow"/>
         <flow-ref name="translate_quote_flow" doc:name="translate_quote_flow"/>
