@@ -27,8 +27,8 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
 		host="0.0.0.0" port="${http.port}" doc:name="HTTP Listener Configuration" />
 
 	<http:request-config name="HTTP_quotes_from_got_req_config"
-		host="got-quotes.herokuapp.com" doc:name="HTTP Request Configuration"
-		port="443" basePath="/quotes" protocol="HTTPS" />
+		host="${qoutes.host}" doc:name="HTTP Request Configuration"
+		port="${quotes.port}" basePath="/quotes" protocol="HTTPS" />
 
 	<http:request-config name="HTTP_yandex_translate_req_config"
 		protocol="HTTPS" host="${yandex.host}" port="${yandex.port}"
@@ -37,7 +37,9 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
 	<context:property-placeholder location="app-${env}.properties" />
 	<jms:activemq-connector name="Active_MQ"
 		specification="1.1" brokerURL="${jms.broker}" validateConnections="true"
-		doc:name="Active MQ" password="${jms.password}" username="${jms.user}" />
+		doc:name="Active MQ" password="${jms.password}" username="${jms.user}" >
+        <reconnect count="5"/>
+    </jms:activemq-connector>
 
 
 </mule>
