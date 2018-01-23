@@ -43,14 +43,21 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
 	<context:property-placeholder location="app-${env}.properties" />
 
 	<choice-exception-strategy name="get_quote_exception_strategy">
-		<catch-exception-strategy doc:name="Catch Exception Strategy" enableNotifications="false">
-			<logger message="#[payload]" level="INFO" doc:name="Logger" />
-			<set-payload value="#[payload]" doc:name="Set Payload" />
+
+		<catch-exception-strategy
+			when="#[exception.causedBy(org.mule.module.json.validation.JsonSchemaValidationException)]"
+			enableNotifications="false" doc:name="Catch Json Schema validation Exception Strategy">
+			<set-payload
+				value="JSON Response schema has been updated #[&quot;\n&quot; + exception ]"
+				doc:name="Invalid response error as payload" />
+			<logger level="INFO" doc:name="Logger" />
 		</catch-exception-strategy>
-        <catch-exception-strategy when="#[exception.causeBy()]" enableNotifications="false" doc:name="Catch Exception Strategy">
-            <logger level="INFO" doc:name="Logger"/>
-            <set-payload doc:name="Set Payload"/>
-        </catch-exception-strategy>
+		<catch-exception-strategy doc:name="Catch other exception strategy"
+			enableNotifications="false">
+			<set-payload value="unhandled exception #[&quot;\n&quot;+exception]" doc:name="Set Payload" />
+			<logger message="#[payload]" level="INFO" doc:name="Logger" />
+		</catch-exception-strategy>
+		
 	</choice-exception-strategy>
 
 
