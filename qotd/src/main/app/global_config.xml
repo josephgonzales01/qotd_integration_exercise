@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:context="http://www.springframework.org/schema/context"
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -9,6 +10,18 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
 http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+
+	<configuration doc:name="Java_qotd.service.Compression">
+		<expression-language>
+			<import class="qotd.service.Compression" />
+			<global-functions>
+				def uncompress(text,indices){
+				return
+				Compression.uncompress(text,indices)
+				}
+			</global-functions>
+		</expression-language>
+	</configuration>
 
 	<http:listener-config name="HTTP_Listener_Configuration"
 		host="0.0.0.0" port="${http.port}" doc:name="HTTP Listener Configuration" />
@@ -22,7 +35,9 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
 		doc:name="HTTP Request Configuration" basePath="${yandex.basePath}" />
 
 	<context:property-placeholder location="app-${env}.properties" />
-    <jms:activemq-connector name="Active_MQ" specification="1.1" brokerURL="${jms.broker}" validateConnections="true" doc:name="Active MQ" password="${jms.password}" username="${jms.user}"/>
+	<jms:activemq-connector name="Active_MQ"
+		specification="1.1" brokerURL="${jms.broker}" validateConnections="true"
+		doc:name="Active MQ" password="${jms.password}" username="${jms.user}" />
 
 
 </mule>

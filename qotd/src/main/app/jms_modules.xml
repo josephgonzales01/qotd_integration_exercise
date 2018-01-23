@@ -24,14 +24,15 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
         <dw:transform-message doc:name="uncompress message and transform to csv format" metadata:id="665efb1c-81aa-437c-88fa-d9057ec26be5">
             <dw:input-payload mimeType="application/json"/>
             <dw:set-payload><![CDATA[%dw 1.0
-%output application/csv separator = " " , header = false
+%output application/csv separator = " ", header=false, quoteValues=true
 ---
 payload map ((payload01 , indexOfPayload01) -> {
-	quotes: payload01.compress,
+	quotes: uncompress(payload01.compress,payload01.indexes),
 	author: payload01.author,
 	language: payload01.language
 })]]></dw:set-payload>
         </dw:transform-message>
+        <logger message="uncompressed: #[payload]" level="INFO" doc:name="Log uncompress quotes"/>
         <file:outbound-endpoint path="/Users/joseph.gonzales/Documents" outputPattern="#['Translated_quotes_'+server.dateTime.format('MMddyy')].txt" responseTimeout="10000" doc:name="Write translated quotes to file "/>
     </sub-flow>
 </mule>
