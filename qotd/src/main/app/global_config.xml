@@ -27,19 +27,31 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
 		host="0.0.0.0" port="${http.port}" doc:name="HTTP Listener Configuration" />
 
 	<http:request-config name="HTTP_quotes_from_got_req_config"
-		host="${qoutes.host}" doc:name="HTTP Request Configuration"
-		port="${quotes.port}" basePath="/quotes" protocol="HTTPS" />
+		host="${qoutes.host}" doc:name="HTTP Request Configuration" port="${https.port}"
+		basePath="/quotes" protocol="HTTPS" />
 
 	<http:request-config name="HTTP_yandex_translate_req_config"
-		protocol="HTTPS" host="${yandex.host}" port="${yandex.port}"
+		protocol="HTTPS" host="${yandex.host}" port="${https.port}"
 		doc:name="HTTP Request Configuration" basePath="${yandex.basePath}" />
 
-	<context:property-placeholder location="app-${env}.properties" />
 	<jms:activemq-connector name="Active_MQ"
 		specification="1.1" brokerURL="${jms.broker}" validateConnections="true"
-		doc:name="Active MQ" password="${jms.password}" username="${jms.user}" >
-        <reconnect count="5"/>
-    </jms:activemq-connector>
+		doc:name="Active MQ" password="${jms.password}" username="${jms.user}">
+		<reconnect count="5" />
+	</jms:activemq-connector>
+
+	<context:property-placeholder location="app-${env}.properties" />
+
+	<choice-exception-strategy name="get_quote_exception_strategy">
+		<catch-exception-strategy doc:name="Catch Exception Strategy" enableNotifications="false">
+			<logger message="#[payload]" level="INFO" doc:name="Logger" />
+			<set-payload value="#[payload]" doc:name="Set Payload" />
+		</catch-exception-strategy>
+        <catch-exception-strategy when="#[exception.causeBy()]" enableNotifications="false" doc:name="Catch Exception Strategy">
+            <logger level="INFO" doc:name="Logger"/>
+            <set-payload doc:name="Set Payload"/>
+        </catch-exception-strategy>
+	</choice-exception-strategy>
 
 
 </mule>

@@ -1,0 +1,32 @@
+{
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "properties": {
+    "quote": {
+      "$id": "/properties/quote",
+      "type": "string",
+      "title": "The Quote Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "The whores are walking bowlegged."
+      ]
+    },
+    "characterx": {
+      "$id": "/properties/characterx",
+      "type": "string",
+      "title": "The Character Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "Littlefinger"
+      ]
+    }
+  },
+  "required": [
+    "quote",
+    "characterx"
+  ]
+}

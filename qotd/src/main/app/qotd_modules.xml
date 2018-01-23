@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata"
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
 	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -8,7 +8,8 @@
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
-http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
     <sub-flow name="init_common_variables_flow">
         <set-variable variableName="var_lang" value="#[message.inboundProperties.'http.query.params'.lang]" doc:name="Variable for language request param"/>
         <set-variable variableName="var_file_written" value="false" doc:name="Variable for file write status"/>
@@ -18,6 +19,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 	<flow name="get-game-of_thrones-quote-flow">
 		<http:request config-ref="HTTP_quotes_from_got_req_config"
 			path="/" method="GET" doc:name="Get Quote from GOT via HTTP Rest" />
+        <json:validate-schema schemaLocation="${quotes.response.schema}" doc:name="Validate GOT quote response"/>
 		<dw:transform-message doc:name="Transform to qotd json format"
 			metadata:id="c0cffca8-c69d-46d2-8099-faa96ebaf90d">
 			<dw:input-payload mimeType="application/json" />
@@ -37,6 +39,7 @@ payload.quote]]></dw:set-variable>
 ---
 payload.character]]></dw:set-variable>
 		</dw:transform-message>
+        <exception-strategy ref="get_quote_exception_strategy" doc:name="Get Quote Request exception strategy"/>
 	</flow>
 	<flow name="translate_quote_flow">
         <flow-ref name="get_languages_flow" doc:name="get_languages_flow"/>
@@ -64,7 +67,7 @@ payload.character]]></dw:set-variable>
         </dw:transform-message>
 		<logger
 			message=" compressed quotes: #[payload.compress]     indexes of whitespace: #[payload.indexes]"
-			level="INFO" doc:name="Logger" />
+			level="INFO" doc:name="Log compressed quotes" />
 		<expression-component doc:name="collect compressed quotes"><![CDATA[flowVars.var_compressList.add(payload)]]></expression-component>
 	</sub-flow>
     <sub-flow name="publish_qotd_topic_flow">
