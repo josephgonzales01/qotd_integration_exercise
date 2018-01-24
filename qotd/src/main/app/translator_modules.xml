@@ -31,7 +31,7 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 otherwise 
 	p('yandex.lang') splitBy ","]]></dw:set-payload>
         </dw:transform-message>
-        <validation:is-empty message="No Languages found" value="#[payload.get(0)]" doc:name="Validation"/>
+        <validation:is-not-empty message="Languages used for translation not set" value="#[payload.get(0)]" doc:name="Validation"/>
         <logger message="Languages: #[payload]" level="INFO" doc:name="Log Languages found"/>
     </sub-flow>
 </mule>

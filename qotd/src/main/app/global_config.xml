@@ -48,18 +48,22 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
 			when="#[exception.causedBy(org.mule.module.json.validation.JsonSchemaValidationException)]"
 			enableNotifications="false" doc:name="Catch Json Schema validation Exception Strategy">
 			<set-payload
-				value="&gt;&gt;&gt;&gt;Invalid JSON Response schema: #[&quot;\n&quot; + exception.cause ]"
+				value="Validation of JSON Response failed: #[&quot;\n&quot; + exception ]"
 				doc:name="Exception as payload" />
             <set-property propertyName="http.status" value="422" doc:name="set status 422"/>
 		</catch-exception-strategy>
 		<catch-exception-strategy doc:name="Catch Compression exception strategy"
 			enableNotifications="false" when="#[exception.causedBy(qotd.exception.CompressionException)]">
-			<set-payload value="&gt;&gt;&gt;&gt;unhandled exception: #[&quot;\n&quot;+exception]" doc:name="Exception message as payload" />
+			<set-payload value="Unable to uncompress text: #[&quot;\n&quot;+exception]" doc:name="Exception message as payload" />
             <set-property propertyName="http.status" value="422" doc:name="set status 422"/>
 		</catch-exception-strategy>
-        <catch-exception-strategy doc:name="Catch any other Exception">
-            <set-payload value="&gt;&gt;&gt;&gt;Error during compression/uncompression: #[&quot;\n&quot; + exception.cause ]" doc:name="Exception message as payload"/>
-            <set-property propertyName="http.status" value="500" doc:name="set status 500"/>
+        <catch-exception-strategy when="#[exception.causedBy(org.mule.extension.validation.api.ValidationException)]" doc:name="Catch other Validation Exception">
+            <set-payload value="Validation Failed: #[exception ]" doc:name="Exception message as payload"/>
+            <set-property propertyName="http.status" value="400" doc:name="set status 400"/>
+        </catch-exception-strategy>
+        <catch-exception-strategy doc:name="Catch any other Exception Strategy">
+            <set-payload value="Unable to process request: #[&quot;\n&quot; + exception]" doc:name="Exception message as payload"/>
+            <set-property propertyName="http.status" value="400" doc:name="set status 400"/>
         </catch-exception-strategy>
 		
 	</choice-exception-strategy>

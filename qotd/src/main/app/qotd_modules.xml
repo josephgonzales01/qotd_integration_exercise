@@ -42,12 +42,12 @@ payload.character]]></dw:set-variable>
 		</dw:transform-message>
 	</flow>
 	<flow name="translate_quote_flow">
-        <flow-ref name="get_languages_flow" doc:name="get_languages_flow"/>
+        <flow-ref name="get_languages_flow" doc:name="get languages flow"/>
         <set-variable variableName="var_compressList" value="#[[]]" doc:name="var_compressList"/>
 		<foreach collection="#[payload]" rootMessageVariableName="RootMessage"
 			doc:name="For Each language">
-            <flow-ref name="translate_flow" doc:name="translate_flow"/>
-			<flow-ref name="compress_collect_flow" doc:name="compress_collect_flow" />
+            <flow-ref name="translate_flow" doc:name="translate flow"/>
+			<flow-ref name="compress_collect_flow" doc:name="compress collect flow" />
 		</foreach>
         <set-payload value="#[flowVars.var_compressList]" doc:name="Set compress list as Payload"/>
 	</flow>
@@ -71,7 +71,7 @@ payload.character]]></dw:set-variable>
 		<expression-component doc:name="collect compressed quotes"><![CDATA[flowVars.var_compressList.add(payload)]]></expression-component>
 	</sub-flow>
     <sub-flow name="publish_qotd_topic_flow">
-        <flow-ref name="jms_publish_qotd_topic_flow" doc:name="jms_publish_qotd_topic_flow"/>
+        <flow-ref name="jms_publish_qotd_topic_flow" doc:name="jms publish qotd topic flow"/>
         <expression-component doc:name="jms publish status"><![CDATA[flowVars.var_jms_published=true;]]></expression-component>
         <set-payload value="{    
 	&quot;file_written&quot;: #[flowVars.var_file_written],
