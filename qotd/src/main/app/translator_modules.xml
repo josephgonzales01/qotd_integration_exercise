@@ -22,7 +22,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 		</http:request>
 	</sub-flow>
     <sub-flow name="get_languages_flow">
-        <dw:transform-message doc:name="Transform Message">
+        <dw:transform-message doc:name="Extract languages from request param or properties file">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/java
 %var lang=flowVars.var_lang
