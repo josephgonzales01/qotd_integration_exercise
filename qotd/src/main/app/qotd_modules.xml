@@ -23,7 +23,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
         <flow-ref name="init_common_variables_flow" doc:name="initialize variables"/>
 		<http:request config-ref="HTTP_quotes_from_got_req_config"
 			path="/" method="GET" doc:name="Get Quote from GOT via HTTP Rest" />
-        <json:validate-schema schemaLocation="${quotes.response.schema}" doc:name="Validate GOT quote response"/>
+        <json:validate-schema schemaLocation="${quotes.response.schema}" doc:name="Validate get quote response"/>
 		<dw:transform-message doc:name="Transform to qotd json format"
 			metadata:id="c0cffca8-c69d-46d2-8099-faa96ebaf90d">
 			<dw:input-payload mimeType="application/json" />

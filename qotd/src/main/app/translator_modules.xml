@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
-http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
 
 	<sub-flow name="translate_flow">
         <set-variable variableName="var_current_lang" value="#[payload]" doc:name="Variable for current language"/>
@@ -19,6 +20,7 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 				<http:query-param paramName="lang" value="#[payload]" />
 			</http:request-builder>
 		</http:request>
+        <json:validate-schema schemaLocation="${yandex.response.schema}" doc:name="Validate yandex response"/>
         <logger message="Translated: #[payload]" level="INFO" doc:name="Log returned translation"/>
 	</sub-flow>
     <sub-flow name="pick_languages_flow">
@@ -31,7 +33,7 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 otherwise 
 	p('yandex.lang') splitBy ","]]></dw:set-payload>
         </dw:transform-message>
-        <validation:is-not-empty message="Languages used for translation not set" value="#[payload.get(0)]" doc:name="Validation"/>
+        <validation:is-not-empty message="Languages used for translation not set" value="#[payload.get(0)]" doc:name="validate languages not empty"/>
         <logger message="Languages: #[payload]" level="INFO" doc:name="Log Languages found"/>
     </sub-flow>
 </mule>
