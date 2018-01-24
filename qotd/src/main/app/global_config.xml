@@ -42,21 +42,29 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
 
 	<context:property-placeholder location="app-${env}.properties" />
 
-	<choice-exception-strategy name="get_quote_exception_strategy">
+	<choice-exception-strategy name="global_exception_strategy">
 
 		<catch-exception-strategy
 			when="#[exception.causedBy(org.mule.module.json.validation.JsonSchemaValidationException)]"
 			enableNotifications="false" doc:name="Catch Json Schema validation Exception Strategy">
 			<set-payload
-				value="JSON Response schema has been updated #[&quot;\n&quot; + exception ]"
-				doc:name="Invalid response error as payload" />
-			<logger level="INFO" doc:name="Logger" />
+				value="Validation of JSON Response failed: #[&quot;\n&quot; + exception ]"
+				doc:name="Exception as payload" />
+            <set-property propertyName="http.status" value="422" doc:name="set status 422"/>
 		</catch-exception-strategy>
-		<catch-exception-strategy doc:name="Catch other exception strategy"
-			enableNotifications="false">
-			<set-payload value="unhandled exception #[&quot;\n&quot;+exception]" doc:name="Set Payload" />
-			<logger message="#[payload]" level="INFO" doc:name="Logger" />
+		<catch-exception-strategy doc:name="Catch Compression exception strategy"
+			enableNotifications="false" when="#[exception.causedBy(qotd.exception.CompressionException)]">
+			<set-payload value="Unable to uncompress text: #[&quot;\n&quot;+exception]" doc:name="Exception message as payload" />
+            <set-property propertyName="http.status" value="422" doc:name="set status 422"/>
 		</catch-exception-strategy>
+        <catch-exception-strategy when="#[exception.causedBy(org.mule.extension.validation.api.ValidationException)]" doc:name="Catch other Validation Exception">
+            <set-payload value="Validation Failed: #[exception ]" doc:name="Exception message as payload"/>
+            <set-property propertyName="http.status" value="400" doc:name="set status 400"/>
+        </catch-exception-strategy>
+        <catch-exception-strategy doc:name="Catch any other Exception Strategy">
+            <set-payload value="Unable to process request: #[&quot;\n&quot; + exception]" doc:name="Exception message as payload"/>
+            <set-property propertyName="http.status" value="500" doc:name="set status 500"/>
+        </catch-exception-strategy>
 		
 	</choice-exception-strategy>
 

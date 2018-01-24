@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata"
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
 	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -9,14 +9,18 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
     <sub-flow name="init_common_variables_flow">
         <set-variable variableName="var_lang" value="#[message.inboundProperties.'http.query.params'.lang]" doc:name="Variable for language request param"/>
         <set-variable variableName="var_file_written" value="false" doc:name="Variable for file write status"/>
         <set-variable variableName="var_jms_published" value="false" doc:name="Variable for jms publish status"/>
+        <set-variable variableName="var_compressList" value="#[[]]" doc:name="variable for compress list"/>
     </sub-flow>
 
-	<flow name="get-game-of_thrones-quote-flow">
+	<flow name="get_quote_flow">
+        <flow-ref name="init_common_variables_flow" doc:name="initialize variables"/>
 		<http:request config-ref="HTTP_quotes_from_got_req_config"
 			path="/" method="GET" doc:name="Get Quote from GOT via HTTP Rest" />
         <json:validate-schema schemaLocation="${quotes.response.schema}" doc:name="Validate GOT quote response"/>
@@ -39,20 +43,9 @@ payload.quote]]></dw:set-variable>
 ---
 payload.character]]></dw:set-variable>
 		</dw:transform-message>
-        <exception-strategy ref="get_quote_exception_strategy" doc:name="Reference Exception Strategy"/>
-	</flow>
-	<flow name="translate_quote_flow">
-        <flow-ref name="get_languages_flow" doc:name="get_languages_flow"/>
-        <set-variable variableName="var_compressList" value="#[[]]" doc:name="var_compressList"/>
-		<foreach collection="#[payload]" rootMessageVariableName="RootMessage"
-			doc:name="For Each language">
-            <flow-ref name="translate_flow" doc:name="translate_flow"/>
-			<flow-ref name="compress_collect_flow" doc:name="compress_collect_flow" />
-		</foreach>
-        <set-payload value="#[flowVars.var_compressList]" doc:name="Set compress list as Payload"/>
 	</flow>
 
-	<sub-flow name="compress_collect_flow">
+	<sub-flow name="compress_flow">
         <dw:transform-message doc:name="Compress quotes" metadata:id="071ca266-470f-4844-b0a8-82c66222f495">
             <dw:input-payload mimeType="application/json"/>
             <dw:set-payload><![CDATA[%dw 1.0
@@ -70,12 +63,4 @@ payload.character]]></dw:set-variable>
 			level="INFO" doc:name="Log compressed quotes" />
 		<expression-component doc:name="collect compressed quotes"><![CDATA[flowVars.var_compressList.add(payload)]]></expression-component>
 	</sub-flow>
-    <sub-flow name="publish_qotd_topic_flow">
-        <flow-ref name="jms_publish_qotd_topic_flow" doc:name="jms_publish_qotd_topic_flow"/>
-        <expression-component doc:name="jms publish status"><![CDATA[flowVars.var_jms_published=true;]]></expression-component>
-        <set-payload value="{    
-	&quot;file_written&quot;: #[flowVars.var_file_written],
-     &quot;jms_published&quot;:  #[flowVars.var_jms_published], 
-     &quot;message&quot;:     #[payload] }" mimeType="text/json" doc:name="jms result as payload"/>
-    </sub-flow>
 </mule>

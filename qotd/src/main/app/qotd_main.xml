@@ -13,14 +13,19 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
 http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd">
    
-    <flow name="get_quotes_flow">
+    <flow name="quote_of_the_day_main_flow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/quotes" doc:name="HTTP" allowedMethods="GET">
             <http:response-builder statusCode="200"/>
         </http:listener>
-        <flow-ref name="init_common_variables_flow" doc:name="init_common_variables_flow"/>
-        <flow-ref name="get-game-of_thrones-quote-flow" doc:name="get-game-of_thrones-quote-flow"/>
-        <flow-ref name="write_qotd_file_flow" doc:name="write_qotd_file_flow"/>
-        <flow-ref name="translate_quote_flow" doc:name="translate_quote_flow"/>
-        <flow-ref name="publish_qotd_topic_flow" doc:name="publish_qotd_topic_flow"/>
+        <flow-ref name="get_quote_flow" doc:name="get quote flow"/>
+        <flow-ref name="write_qotd_file_flow" doc:name="write english quote to file flow"/>
+        <flow-ref name="pick_languages_flow" doc:name="pick languages flow"/>
+        <foreach doc:name="for each language">
+            <flow-ref name="translate_flow" doc:name="translate flow"/>
+            <flow-ref name="compress_flow" doc:name="compress flow "/>
+        </foreach>
+        <flow-ref name="jms_publish_qotd_topic_flow" doc:name="JMS publish quotes flow"/>
+        <set-payload value="{      &quot;file_written&quot;: #[flowVars.var_file_written],      &quot;jms_published&quot;:  #[flowVars.var_jms_published],       &quot;message&quot;:     #[payload] }" mimeType="text/json" doc:name="set results as payload"/>
+        <exception-strategy ref="global_exception_strategy" doc:name="Reference Exception Strategy"/>
     </flow>
 </mule>
