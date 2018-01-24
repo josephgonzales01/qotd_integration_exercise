@@ -21,7 +21,7 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 		</http:request>
         <logger message="Translated: #[payload]" level="INFO" doc:name="Log returned translation"/>
 	</sub-flow>
-    <sub-flow name="get_languages_flow">
+    <sub-flow name="pick_languages_flow">
         <dw:transform-message doc:name="Extract languages from request param or properties file">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/java

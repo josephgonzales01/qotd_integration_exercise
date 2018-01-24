@@ -17,7 +17,9 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
         <flow-ref name="write_translated_quotes_to_file_flow" doc:name="write translated quotes to file flow"/>
     </flow>
     <flow name="jms_publish_qotd_topic_flow">
-        <json:object-to-json-transformer doc:name="Object to JSON" mimeType="text/json"/>
+        <set-payload value="#[flowVars.var_compressList]" doc:name="Set Compress quotes list as Payload"/>
+        <json:object-to-json-transformer doc:name="List of quotes to JSON" mimeType="text/json"/>
         <jms:outbound-endpoint topic="${jms.topic}" connector-ref="Active_MQ" doc:name="JMS publish qotd topic"/>
+        <expression-component doc:name="set jms published status"><![CDATA[flowVars.var_jms_published=true;]]></expression-component>
     </flow>
 </mule>

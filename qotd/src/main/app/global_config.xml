@@ -63,7 +63,7 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
         </catch-exception-strategy>
         <catch-exception-strategy doc:name="Catch any other Exception Strategy">
             <set-payload value="Unable to process request: #[&quot;\n&quot; + exception]" doc:name="Exception message as payload"/>
-            <set-property propertyName="http.status" value="400" doc:name="set status 400"/>
+            <set-property propertyName="http.status" value="500" doc:name="set status 500"/>
         </catch-exception-strategy>
 		
 	</choice-exception-strategy>
