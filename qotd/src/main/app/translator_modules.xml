@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
 
 	<sub-flow name="translate_flow">
-		<logger message="Current langauge: #[payload]" level="INFO"
-			doc:name="Logger" />
         <set-variable variableName="var_current_lang" value="#[payload]" doc:name="Variable for current language"/>
 		<http:request config-ref="HTTP_yandex_translate_req_config"
 			path="/translate" method="GET" doc:name="HTTP request to yandex">
@@ -20,6 +19,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 				<http:query-param paramName="lang" value="#[payload]" />
 			</http:request-builder>
 		</http:request>
+        <logger message="Translated: #[payload]" level="INFO" doc:name="Log returned translation"/>
 	</sub-flow>
     <sub-flow name="get_languages_flow">
         <dw:transform-message doc:name="Extract languages from request param or properties file">
@@ -27,7 +27,11 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 %output application/java
 %var lang=flowVars.var_lang
 ---
-[lang] when (lang!=null and lang!="") otherwise p('yandex.lang') splitBy ","]]></dw:set-payload>
+[lang] when (lang!=null and lang!="") 
+otherwise 
+	p('yandex.lang') splitBy ","]]></dw:set-payload>
         </dw:transform-message>
+        <validation:is-empty message="No Languages found" value="#[payload.get(0)]" doc:name="Validation"/>
+        <logger message="Languages: #[payload]" level="INFO" doc:name="Log Languages found"/>
     </sub-flow>
 </mule>
