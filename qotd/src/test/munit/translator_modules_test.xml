@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule 
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   	xmlns:mock="http://www.mulesoft.org/schema/mule/mock" 
 	xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
@@ -10,27 +10,26 @@
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd">
+http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
     <munit:config name="munit" doc:name="MUnit configuration"/>
     <spring:beans>
         <spring:import resource="classpath:translator_modules.xml"/>
         <spring:import resource="classpath:global_config.xml"/>
     </spring:beans>
-    <munit:test name="translator_modules_testTest" description="MUnit Test">
-        <mock:when messageProcessor=".*:.*" doc:name="Mock Selected Language to use">
-            <mock:with-attributes>
-                <mock:with-attribute name="doc:name" whereValue="#['Variable for current language']"/>
-            </mock:with-attributes>
-            <mock:then-return payload="en-fr"/>
-        </mock:when>
-        <mock:when messageProcessor=".*:.*" doc:name="Mock">
-            <mock:with-attributes>
-                <mock:with-attribute name="doc:name" whereValue="#['HTTP request to yandex']"/>
-            </mock:with-attributes>
-            <mock:then-return payload="#[]"/>
-        </mock:when>
-        <variable-transformer doc:name="var_quote"/>
-        <flow-ref name="translate_flow" doc:name="translate flow"/>
+    <munit:test name="translate_test" description="MUnit Test">
+        <dw:transform-message doc:name="extract data to use as request parameters">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+"en-fr"]]></dw:set-payload>
+            <dw:set-variable variableName="var_quote"><![CDATA[%dw 1.0
+%output application/java
+---
+"the quick brown fox jump over the lazy dog"]]></dw:set-variable>
+        </dw:transform-message>
+        <flow-ref name="translate_flow" doc:name="test translate flow"/>
+        <munit:assert-false condition="#[payload == empty]" doc:name="Assert translated response not empty"/>
     </munit:test>
     <munit:test name="pick_languages_test" description="MUnit Test">
         <flow-ref name="pick_languages_flow" doc:name="pick languages flow"/>
