@@ -61,6 +61,20 @@ payload.character]]></dw:set-variable>
 			level="INFO" doc:name="Log compressed quotes" />
 		<expression-component doc:name="collect compressed quotes"><![CDATA[flowVars.var_compressList.add(payload)]]></expression-component>
 	</sub-flow>
+    <sub-flow name="uncompress_message_flow">
+        <dw:transform-message doc:name="uncompress message and transform to csv format" metadata:id="665efb1c-81aa-437c-88fa-d9057ec26be5">
+            <dw:input-payload mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/csv separator = " ", header=false, quoteValues=true
+---
+payload map ((payload01 , indexOfPayload01) -> {
+	quotes: uncompress(payload01.compress,payload01.indexes),
+	author: payload01.author,
+	language: payload01.language
+})]]></dw:set-payload>
+        </dw:transform-message>
+        <logger message="uncompressed: #[payload]" level="INFO" doc:name="Log uncompress quotes"/>
+    </sub-flow>
     <flow name="jms_publish_compress_quotes_flow">
         <set-payload value="#[flowVars.var_compressList]" doc:name="Set Compress quotes list as Payload"/>
         <json:object-to-json-transformer mimeType="text/json" doc:name="List of quotes to JSON"/>

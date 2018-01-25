@@ -26,6 +26,7 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
     <flow name="jms_subscribe_qtod_topic_flow">
         <jms:inbound-endpoint topic="${jms.topic}" connector-ref="Active_MQ" doc:name="JMS subscribe qotd topic"/>
         <logger message="#[payload]" level="INFO" doc:name="Log jms message"/>
+        <flow-ref name="uncompress_message_flow" doc:name="uncompress message flow"/>
         <flow-ref name="write_translated_quotes_to_file_flow" doc:name="write translated quotes to file flow"/>
     </flow>
 </mule>
