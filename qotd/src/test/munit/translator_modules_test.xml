@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  	xmlns:mock="http://www.mulesoft.org/schema/mule/mock" 
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+    <munit:config name="munit" doc:name="MUnit configuration"/>
+    <spring:beans>
+        <spring:import resource="classpath:translator_modules.xml"/>
+        <spring:import resource="classpath:global_config.xml"/>
+    </spring:beans>
+    <munit:test name="translate_test" description="MUnit Test">
+        <dw:transform-message doc:name="extract data to use as request parameters">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+"en-fr"]]></dw:set-payload>
+            <dw:set-variable variableName="var_quote"><![CDATA[%dw 1.0
+%output application/java
+---
+"the quick brown fox jump over the lazy dog"]]></dw:set-variable>
+        </dw:transform-message>
+        <flow-ref name="translate_flow" doc:name="test translate flow"/>
+        <munit:assert-false condition="#[payload == empty]" doc:name="Assert translated response not empty"/>
+    </munit:test>
+    <munit:test name="pick_languages_test" description="MUnit Test">
+        <flow-ref name="pick_languages_flow" doc:name="pick languages flow"/>
+        <munit:assert-true condition="#[payload.size()&gt;0]" doc:name="Assert that languages was picked and transformed to list"/>
+    </munit:test>
+    
+</mule>

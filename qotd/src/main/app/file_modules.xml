@@ -4,7 +4,7 @@
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
-    <sub-flow name="write_qotd_file_flow">
+    <sub-flow name="write_english_quotes_to_file_flow">
         <dw:transform-message doc:name="Transform to qotd csv format" metadata:id="56ad83d5-556a-418d-8389-802f9d78f902">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/csv separator = " ", header=false, quoteValues=true
@@ -19,18 +19,6 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
         <expression-component doc:name="file write status update"><![CDATA[flowVars.var_file_written=true]]></expression-component>
     </sub-flow>
     <sub-flow name="write_translated_quotes_to_file_flow">
-        <dw:transform-message doc:name="uncompress message and transform to csv format" metadata:id="665efb1c-81aa-437c-88fa-d9057ec26be5">
-            <dw:input-payload mimeType="application/json"/>
-            <dw:set-payload><![CDATA[%dw 1.0
-%output application/csv separator = " ", header=false, quoteValues=true
----
-payload map ((payload01 , indexOfPayload01) -> {
-	quotes: uncompress(payload01.compress,payload01.indexes),
-	author: payload01.author,
-	language: payload01.language
-})]]></dw:set-payload>
-        </dw:transform-message>
-        <logger message="uncompressed: #[payload]" level="INFO" doc:name="Log uncompress quotes"/>
         <file:outbound-endpoint path="/Users/joseph.gonzales/Documents" outputPattern="#['Translated_quotes_'+server.dateTime.format('MMddyy')].txt" responseTimeout="10000" doc:name="Write translated quotes to file"/>
     </sub-flow>
 </mule>

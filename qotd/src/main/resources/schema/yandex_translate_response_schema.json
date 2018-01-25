@@ -1,0 +1,47 @@
+{
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "properties": {
+    "code": {
+      "$id": "/properties/code",
+      "type": "integer",
+      "title": "The Code Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": 0,
+      "examples": [
+        200
+      ]
+    },
+    "lang": {
+      "$id": "/properties/lang",
+      "type": "string",
+      "title": "The Lang Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "en-fr"
+      ]
+    },
+    "text": {
+      "$id": "/properties/text",
+      "type": "array",
+      "items": {
+        "$id": "/properties/text/items",
+        "type": "string",
+        "title": "The 0 Schema",
+        "description": "An explanation about the purpose of this instance.",
+        "default": "",
+        "examples": [
+          "À quoi bon, cela, je vous le demande? Celui qui se précipite à travers la vie se précipite à sa tombe"
+        ]
+      }
+    }
+  },
+  "required": [
+    "code",
+    "lang",
+    "text"
+  ]
+}
