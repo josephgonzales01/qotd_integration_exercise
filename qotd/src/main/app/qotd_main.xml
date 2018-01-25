@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:context="http://www.springframework.org/schema/context" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
-http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
-http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
-http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
-http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd">
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
    
     <flow name="quote_of_the_day_main_flow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/quotes" doc:name="HTTP" allowedMethods="GET">
@@ -24,8 +19,13 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
             <flow-ref name="translate_flow" doc:name="translate flow"/>
             <flow-ref name="compress_flow" doc:name="compress flow "/>
         </foreach>
-        <flow-ref name="jms_publish_qotd_topic_flow" doc:name="JMS publish translated quotes flow"/>
+        <flow-ref name="jms_publish_compress_quotes_flow" doc:name="JMS publish compressed quotes flow"/>
         <set-payload value="{      &quot;file_written&quot;: #[flowVars.var_file_written],      &quot;jms_published&quot;:  #[flowVars.var_jms_published],       &quot;message&quot;:     #[payload] }" mimeType="text/json" doc:name="set results as payload"/>
         <exception-strategy ref="global_exception_strategy" doc:name="Reference Global Exception Strategy"/>
+    </flow>
+    <flow name="jms_subscribe_qtod_topic_flow">
+        <jms:inbound-endpoint topic="${jms.topic}" connector-ref="Active_MQ" doc:name="JMS subscribe qotd topic"/>
+        <logger message="#[payload]" level="INFO" doc:name="Log jms message"/>
+        <flow-ref name="write_translated_quotes_to_file_flow" doc:name="write translated quotes to file flow"/>
     </flow>
 </mule>
