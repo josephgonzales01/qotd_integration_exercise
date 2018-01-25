@@ -11,13 +11,26 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
 
 	<sub-flow name="translate_flow">
-        <set-variable variableName="var_current_lang" value="#[payload]" doc:name="Variable for current language"/>
+        <dw:transform-message doc:name="extract request parameters to use" metadata:id="99ce89d5-0e21-481b-a666-c012f6dec5ee">
+            <dw:input-variable mimeType="application/java" variableName="var_file_written"/>
+            <dw:input-variable mimeType="application/java" variableName="var_lang"/>
+            <dw:input-variable mimeType="application/java" variableName="var_quote"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	lang: payload,
+	quote: flowVars.var_quote,
+	key: p('yandex.key')
+	
+}]]></dw:set-payload>
+        </dw:transform-message>
 		<http:request config-ref="HTTP_yandex_translate_req_config"
 			path="/translate" method="GET" doc:name="HTTP request to yandex">
 			<http:request-builder>
-				<http:query-param paramName="key" value="${yandex.key}" />
-				<http:query-param paramName="text" value="#[flowVars.var_quote]" />
-				<http:query-param paramName="lang" value="#[payload]" />
+                <http:query-param paramName="key" value="#[payload.key]"/>
+                <http:query-param paramName="text" value="#[payload.quote]"/>
+                <http:query-param paramName="lang" value="#[payload.lang]"/>
 			</http:request-builder>
 		</http:request>
         <json:validate-schema schemaLocation="${yandex.response.schema}" doc:name="Validate yandex response"/>
@@ -29,9 +42,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 %output application/java
 %var lang=flowVars.var_lang
 ---
-[lang] when (lang!=null and lang!="") 
-otherwise 
-	p('yandex.lang') splitBy ","]]></dw:set-payload>
+[lang] when (lang!=null and lang!="") otherwise p('yandex.lang') splitBy ","]]></dw:set-payload>
         </dw:transform-message>
         <validation:is-not-empty message="Languages used for translation not set" value="#[payload.get(0)]" doc:name="validate languages not empty"/>
         <logger message="Languages: #[payload]" level="INFO" doc:name="Log Languages found"/>

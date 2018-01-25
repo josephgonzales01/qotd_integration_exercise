@@ -18,14 +18,14 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
             <http:response-builder statusCode="200"/>
         </http:listener>
         <flow-ref name="get_quote_flow" doc:name="get quote flow"/>
-        <flow-ref name="write_qotd_file_flow" doc:name="write english quote to file flow"/>
+        <flow-ref name="write_english_quotes_to_file_flow" doc:name="write english quote to file flow"/>
         <flow-ref name="pick_languages_flow" doc:name="pick languages flow"/>
         <foreach doc:name="for each language">
             <flow-ref name="translate_flow" doc:name="translate flow"/>
             <flow-ref name="compress_flow" doc:name="compress flow "/>
         </foreach>
-        <flow-ref name="jms_publish_qotd_topic_flow" doc:name="JMS publish quotes flow"/>
+        <flow-ref name="jms_publish_qotd_topic_flow" doc:name="JMS publish translated quotes flow"/>
         <set-payload value="{      &quot;file_written&quot;: #[flowVars.var_file_written],      &quot;jms_published&quot;:  #[flowVars.var_jms_published],       &quot;message&quot;:     #[payload] }" mimeType="text/json" doc:name="set results as payload"/>
-        <exception-strategy ref="global_exception_strategy" doc:name="Reference Exception Strategy"/>
+        <exception-strategy ref="global_exception_strategy" doc:name="Reference Global Exception Strategy"/>
     </flow>
 </mule>

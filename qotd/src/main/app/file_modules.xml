@@ -4,7 +4,7 @@
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
-    <sub-flow name="write_qotd_file_flow">
+    <sub-flow name="write_english_quotes_to_file_flow">
         <dw:transform-message doc:name="Transform to qotd csv format" metadata:id="56ad83d5-556a-418d-8389-802f9d78f902">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/csv separator = " ", header=false, quoteValues=true
