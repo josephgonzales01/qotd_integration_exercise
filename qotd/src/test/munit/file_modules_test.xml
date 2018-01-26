@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  	xmlns:mock="http://www.mulesoft.org/schema/mule/mock" 
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+    <munit:config name="munit" doc:name="MUnit configuration"/>
+    <spring:beans>
+        <spring:import resource="classpath:file_modules.xml"/>
+        <spring:import resource="classpath:global_config.xml"/>
+    </spring:beans>
+    <munit:test name="write_english_quotes_to_file_test" description="MUnit Test">
+        <dw:transform-message doc:name="extract data to be used for writting file">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+}]]></dw:set-payload>
+            <dw:set-variable variableName="var_quote"><![CDATA[%dw 1.0
+%output application/java
+---
+'the quick brown fox jump over the lazy dog.']]></dw:set-variable>
+            <dw:set-variable variableName="var_author"><![CDATA[%dw 1.0
+%output application/java
+---
+'fox']]></dw:set-variable>
+            <dw:set-variable variableName="var_file_written"><![CDATA[%dw 1.0
+%output application/java
+---
+false]]></dw:set-variable>
+        </dw:transform-message>
+        <flow-ref name="write_english_quotes_to_file_flow" doc:name="write english quotes to file flow"/>
+        <munit:assert-true condition="#[flowVars.var_file_written]" doc:name="Assert file written flag was set to true"/>
+    </munit:test>
+    <munit:test name="write_translated_quotes_to_file_test" description="MUnit Test">
+        <set-payload value="[
+{
+  &quot;compress&quot;: &quot;test&quot;,
+  &quot;indexes&quot;: [
+    &quot;1&quot;,
+    &quot;2&quot;,
+    &quot;3&quot;
+  ],
+  &quot;author&quot;: &quot;test&quot;,
+  &quot;language&quot;:&quot;en-fr&quot;
+}
+
+]" doc:name="sample translated quote as test data"/>
+        <dw:transform-message doc:name="Transform payload to csv format" metadata:id="044c5f97-1ad4-45f6-ba31-6be3dfe86ef0">
+            <dw:input-payload mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/csv
+---
+payload map ((payload01 , indexOfPayload01) -> {
+	quotes: payload01.compress,
+	author: payload01.author,
+	language: payload01.language
+})]]></dw:set-payload>
+            <dw:set-variable variableName="var_file_written"><![CDATA[%dw 1.0
+%output application/java
+---
+false]]></dw:set-variable>
+        </dw:transform-message>
+        <flow-ref name="write_translated_quotes_to_file_flow" doc:name="write translated quotes to file flow"/>
+    </munit:test>
+    
+</mule>

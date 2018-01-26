@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:json="http://www.mulesoft.org/schema/mule/json" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  	xmlns:mock="http://www.mulesoft.org/schema/mule/mock" 
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+    <munit:config name="munit" doc:name="MUnit configuration"/>
+    <spring:beans>
+        <spring:import resource="classpath:qotd_modules.xml"/>
+        <spring:import resource="classpath:global_config.xml"/>
+    </spring:beans>
+    <munit:test name="get_quote_request_test" description="MUnit Test">
+        <flow-ref name="get_quote_flow" doc:name="get quote request flow"/>
+        <munit:assert-true condition="#[payload.quote != empty &amp;&amp; payload.author !=empty]" doc:name="Assert payload contains quote and author"/>
+    </munit:test>
+    <munit:test name="compress_quotes_test" description="MUnit Test">
+        <dw:transform-message doc:name="create sample data to compress" metadata:id="b9828639-a7ec-413a-9eab-1dda3c97c72d">
+            <dw:input-payload mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	code: 200,
+	lang: "en-fr",
+	text: ["Der Mann ist so nutzlos wie Nippel auf einem Brustpanzer."
+  ]
+}
+
+]]></dw:set-payload>
+            <dw:set-variable variableName="var_current_lang"><![CDATA[%dw 1.0
+%output application/java
+---
+"en-fr"]]></dw:set-variable>
+            <dw:set-variable variableName="var_author"><![CDATA[%dw 1.0
+%output application/java
+---
+"joseph"]]></dw:set-variable>
+            <dw:set-variable variableName="var_compressList"><![CDATA[%dw 1.0
+%output application/java
+---
+[[]]]]></dw:set-variable>
+        </dw:transform-message>
+        <flow-ref name="compress_flow" doc:name="compress quotes flow"/>
+        <munit:assert-true condition="#[org.mule.util.StringUtils.indexOf(payload.compress,' ')==-1]" doc:name="Assert no spaces on compress quotes"/>
+    </munit:test>
+    <munit:test name="uncompress_quotes_test" description="MUnit Test">
+        <set-payload value="[{&quot;compress&quot;:&quot;LiegenSiewachinderNachtf&#252;rchtet,meineSchnittwunde?&quot;,&quot;indexes&quot;:[6,10,15,18,22,28,38,44],&quot;author&quot;:&quot;Varys&quot;,&quot;language&quot;:&quot;en-de&quot;},{&quot;compress&quot;:&quot;&#924;&#941;&#957;&#949;&#953;&#962;&#958;&#973;&#960;&#957;&#953;&#959;&#962;&#964;&#959;&#946;&#961;&#940;&#948;&#965;&#966;&#959;&#946;&#959;&#973;&#956;&#949;&#957;&#959;&#962;&#964;&#951;&#957;&#964;&#961;&#973;&#960;&#945;&#956;&#959;&#965;;&quot;,&quot;indexes&quot;:[6,14,17,23,34,38,44],&quot;author&quot;:&quot;Varys&quot;,&quot;language&quot;:&quot;en-el&quot;},{&quot;compress&quot;:&quot;&#191;Mientesdespiertoenlanochetemiendoquemiherida?&quot;,&quot;indexes&quot;:[8,18,21,24,30,39,43,46],&quot;author&quot;:&quot;Varys&quot;,&quot;language&quot;:&quot;en-es&quot;},{&quot;compress&quot;:&quot;Savaletad&#246;&#246;selmagada,kartes,etminugash?&quot;,&quot;indexes&quot;:[2,10,16,24,32,35,40],&quot;author&quot;:&quot;Varys&quot;,&quot;language&quot;:&quot;en-et&quot;},{&quot;compress&quot;:&quot;Sin&#228;valehtelethereill&#228;y&#246;ll&#228;pel&#228;tenminunhaava?&quot;,&quot;indexes&quot;:[4,15,24,30,38,44],&quot;author&quot;:&quot;Varys&quot;,&quot;language&quot;:&quot;en-fi&quot;},{&quot;compress&quot;:&quot;Nevousmentez&#233;veill&#233;lanuit,craignantmabalafre?&quot;,&quot;indexes&quot;:[2,7,14,22,25,31,41,44],&quot;author&quot;:&quot;Varys&quot;,&quot;language&quot;:&quot;en-fr&quot;}]" mimeType="application/java" doc:name="Set sample data as payload"/>
+        <flow-ref name="uncompress_message_flow" doc:name="Uncompress quotes flow"/>
+        <munit:assert-true condition="#[org.mule.util.StringUtils.indexOf(message.payloadAs(java.lang.String),' ')&gt;0]" doc:name="Assert quotes contains spaces"/>
+    </munit:test>
+    <munit:test name="publish_quotes_test" description="MUnit Test">
+        <mock:when messageProcessor=".*:.*" doc:name="Mock data to publish">
+            <mock:with-attributes>
+                <mock:with-attribute name="doc:name" whereValue="#['List of quotes to JSON']"/>
+            </mock:with-attributes>
+            <mock:then-return payload="#[&quot;dummy data&quot;]"/>
+        </mock:when>
+        <mock:when messageProcessor=".*:.*" doc:name="Mock JMS publishing topic">
+            <mock:with-attributes>
+                <mock:with-attribute name="doc:name" whereValue="#['JMS publish qotd topic']"/>
+            </mock:with-attributes>
+            <mock:then-return payload="#[&quot;data has been published&quot;]"/>
+        </mock:when>
+        <dw:transform-message doc:name="set sample data to publish">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+[{"compress":"LiegenSiewachinderNachtfürchtet,meineSchnittwunde?","indexes":[6,10,15,18,22,28,38,44],"author":"Varys","language":"en-de"},{"compress":"Μένειςξύπνιοςτοβράδυφοβούμενοςτηντρύπαμου;","indexes":[6,14,17,23,34,38,44],"author":"Varys","language":"en-el"},{"compress":"¿Mientesdespiertoenlanochetemiendoquemiherida?","indexes":[8,18,21,24,30,39,43,46],"author":"Varys","language":"en-es"},{"compress":"Savaletadööselmagada,kartes,etminugash?","indexes":[2,10,16,24,32,35,40],"author":"Varys","language":"en-et"},{"compress":"Sinävalehtelethereilläyölläpelätenminunhaava?","indexes":[4,15,24,30,38,44],"author":"Varys","language":"en-fi"},{"compress":"Nevousmentezéveillélanuit,craignantmabalafre?","indexes":[2,7,14,22,25,31,41,44],"author":"Varys","language":"en-fr"}]]]></dw:set-payload>
+            <dw:set-variable variableName="var_jms_published"><![CDATA[%dw 1.0
+%output application/java
+---
+false]]></dw:set-variable>
+        </dw:transform-message>
+        <flow-ref name="jms_publish_compress_quotes_flow" doc:name="jms publish quotes flow"/>
+        <munit:assert-true condition="#[flowVars.var_jms_published]" doc:name="Assert jms published was set to true"/>
+    </munit:test>
+</mule>

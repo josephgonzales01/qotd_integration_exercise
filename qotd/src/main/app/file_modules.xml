@@ -5,7 +5,7 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
     <sub-flow name="write_english_quotes_to_file_flow">
-        <dw:transform-message doc:name="Transform to qotd csv format" metadata:id="56ad83d5-556a-418d-8389-802f9d78f902">
+        <dw:transform-message doc:name="Transform to quotes csv format" metadata:id="56ad83d5-556a-418d-8389-802f9d78f902">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/csv separator = " ", header=false, quoteValues=true
 ---
@@ -14,11 +14,18 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 	column_1: flowVars.var_author,
 	column_2: now as :string {format: "MMddyyyy"}
 }]]]></dw:set-payload>
+            <dw:set-variable variableName="var_file_written"><![CDATA[%dw 1.0
+%output application/java
+---
+false]]></dw:set-variable>
         </dw:transform-message>
-        <file:outbound-endpoint path="/Users/joseph.gonzales/Documents" outputPattern="#['QOTD_'+server.dateTime.format('MMddyy')].txt" responseTimeout="10000" doc:name="write qotd quotes to file"/>
-        <expression-component doc:name="file write status update"><![CDATA[flowVars.var_file_written=true]]></expression-component>
+        <file:outbound-endpoint path="${file.path}" outputPattern="#['QOTD_'+server.dateTime.format('MMddyy')].txt" responseTimeout="10000" doc:name="write qotd quotes to file"/>
+        <expression-component doc:name="set file write flag to true"><![CDATA[flowVars.var_file_written=true]]></expression-component>
     </sub-flow>
     <sub-flow name="write_translated_quotes_to_file_flow">
-        <file:outbound-endpoint path="/Users/joseph.gonzales/Documents" outputPattern="#['Translated_quotes_'+server.dateTime.format('MMddyy')].txt" responseTimeout="10000" doc:name="Write translated quotes to file"/>
+        <set-variable variableName="var_file_written" value="#[false]" doc:name="Variable for file has been written flag"/>
+        <file:outbound-endpoint path="${file.path}" outputPattern="#['Translated_quotes_'+server.dateTime.format('MMddyy')].txt" responseTimeout="10000" doc:name="Write translated quotes to file"/>
+        <expression-component doc:name="set file write flag to true"><![CDATA[flowVars.var_file_written=true]]></expression-component>
+        <logger level="INFO" doc:name="Logger"/>
     </sub-flow>
 </mule>

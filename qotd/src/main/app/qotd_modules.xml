@@ -10,15 +10,8 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
-    <sub-flow name="init_common_variables_flow">
-        <set-variable variableName="var_lang" value="#[message.inboundProperties.'http.query.params'.lang]" doc:name="Variable for language request param"/>
-        <set-variable variableName="var_file_written" value="false" doc:name="Variable for file write status"/>
-        <set-variable variableName="var_jms_published" value="false" doc:name="Variable for jms publish status"/>
-        <set-variable variableName="var_compressList" value="#[[]]" doc:name="variable for compress list"/>
-    </sub-flow>
 
 	<flow name="get_quote_flow">
-        <flow-ref name="init_common_variables_flow" doc:name="initialize variables"/>
 		<http:request config-ref="HTTP_quotes_from_got_req_config"
 			path="/" method="GET" doc:name="Get Quote from GOT via HTTP Rest" />
         <json:validate-schema schemaLocation="${quotes.response.schema}" doc:name="Validate get quote response"/>
@@ -26,7 +19,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 			metadata:id="c0cffca8-c69d-46d2-8099-faa96ebaf90d">
 			<dw:input-payload mimeType="application/json" />
 			<dw:set-payload><![CDATA[%dw 1.0
-%output application/json
+%output application/java
 ---
 {
 	quote: payload.quote,
@@ -76,7 +69,16 @@ payload map ((payload01 , indexOfPayload01) -> {
         <logger message="uncompressed: #[payload]" level="INFO" doc:name="Log uncompress quotes"/>
     </sub-flow>
     <flow name="jms_publish_compress_quotes_flow">
-        <set-payload value="#[flowVars.var_compressList]" doc:name="Set Compress quotes list as Payload"/>
+        <dw:transform-message doc:name="extract list of compress messages">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+flowVars.var_compressList]]></dw:set-payload>
+            <dw:set-variable variableName="var_jms_published"><![CDATA[%dw 1.0
+%output application/java
+---
+false]]></dw:set-variable>
+        </dw:transform-message>
         <json:object-to-json-transformer mimeType="text/json" doc:name="List of quotes to JSON"/>
         <jms:outbound-endpoint topic="${jms.topic}" connector-ref="Active_MQ" doc:name="JMS publish qotd topic"/>
         <expression-component doc:name="set jms published status"><![CDATA[flowVars.var_jms_published=true;]]></expression-component>
