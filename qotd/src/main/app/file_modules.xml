@@ -26,5 +26,6 @@ false]]></dw:set-variable>
         <set-variable variableName="var_file_written" value="#[false]" doc:name="Variable for file has been written flag"/>
         <file:outbound-endpoint path="${file.path}" outputPattern="#['Translated_quotes_'+server.dateTime.format('MMddyy')].txt" responseTimeout="10000" doc:name="Write translated quotes to file"/>
         <expression-component doc:name="set file write flag to true"><![CDATA[flowVars.var_file_written=true]]></expression-component>
+        <logger level="INFO" doc:name="Logger"/>
     </sub-flow>
 </mule>

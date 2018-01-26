@@ -19,7 +19,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 			metadata:id="c0cffca8-c69d-46d2-8099-faa96ebaf90d">
 			<dw:input-payload mimeType="application/json" />
 			<dw:set-payload><![CDATA[%dw 1.0
-%output application/json
+%output application/java
 ---
 {
 	quote: payload.quote,

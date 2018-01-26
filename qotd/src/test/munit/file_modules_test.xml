@@ -54,7 +54,7 @@ false]]></dw:set-variable>
 }
 
 ]" doc:name="sample translated quote as test data"/>
-        <dw:transform-message doc:name="Transform Message" metadata:id="044c5f97-1ad4-45f6-ba31-6be3dfe86ef0">
+        <dw:transform-message doc:name="Transform payload to csv format" metadata:id="044c5f97-1ad4-45f6-ba31-6be3dfe86ef0">
             <dw:input-payload mimeType="application/json"/>
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/csv

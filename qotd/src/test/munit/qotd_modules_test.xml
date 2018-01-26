@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:json="http://www.mulesoft.org/schema/mule/json" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  	xmlns:mock="http://www.mulesoft.org/schema/mule/mock" 
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+    <munit:config name="munit" doc:name="MUnit configuration"/>
+    <spring:beans>
+        <spring:import resource="classpath:qotd_modules.xml"/>
+        <spring:import resource="classpath:global_config.xml"/>
+    </spring:beans>
+    <munit:test name="get_quote_request_test" description="MUnit Test">
+        <flow-ref name="get_quote_flow" doc:name="get quote request flow"/>
+        <munit:assert-true condition="#[payload.quote != empty &amp;&amp; payload.author !=empty]" doc:name="Assert payload contains quote and author"/>
+    </munit:test>
+    <munit:test name="compress_quotes_test" description="MUnit Test">
+        <dw:transform-message doc:name="create sample data to compress" metadata:id="b9828639-a7ec-413a-9eab-1dda3c97c72d">
+            <dw:input-payload mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	code: 200,
+	lang: "en-fr",
+	text: ["Der Mann ist so nutzlos wie Nippel auf einem Brustpanzer."
+  ]
+}
+
+]]></dw:set-payload>
+            <dw:set-variable variableName="var_current_lang"><![CDATA[%dw 1.0
+%output application/java
+---
+"en-fr"]]></dw:set-variable>
+            <dw:set-variable variableName="var_author"><![CDATA[%dw 1.0
+%output application/java
+---
+"joseph"]]></dw:set-variable>
+            <dw:set-variable variableName="var_compressList"><![CDATA[%dw 1.0
+%output application/java
+---
+[[]]]]></dw:set-variable>
+        </dw:transform-message>
+        <flow-ref name="compress_flow" doc:name="compress quotes flow"/>
+        <munit:assert-true condition="#[org.mule.util.StringUtils.indexOf(payload.compress,' ')==-1]" doc:name="Assert no spaces on compress quotes"/>
+    </munit:test>
+    <munit:test name="uncompress_quotes_test" description="MUnit Test">
+        <set-payload value="[ {   &quot;compress&quot;: &quot;theQuickBrownFoxJumpOverTheLazyDog&quot;,   &quot;indexes&quot;: [ &quot;3&quot;,  &quot;12&quot; ],   &quot;author&quot;: &quot;test&quot;,   &quot;language&quot;:&quot;en-fr&quot; }  ]" mimeType="application/java" doc:name="Set sample data as payload"/>
+        <flow-ref name="uncompress_message_flow" doc:name="Uncompress quotes flow"/>
+        <munit:assert-true condition="#[org.mule.util.StringUtils.indexOf(payload.quotes,' ')&gt;0]" doc:name="Assert quotes contains spaces"/>
+    </munit:test>
+</mule>
