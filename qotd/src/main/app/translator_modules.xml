@@ -24,6 +24,10 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 	key: p('yandex.key')
 	
 }]]></dw:set-payload>
+            <dw:set-variable variableName="var_current_lang"><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-variable>
         </dw:transform-message>
 		<http:request config-ref="HTTP_yandex_translate_req_config"
 			path="/translate" method="GET" doc:name="HTTP request to yandex">
@@ -42,9 +46,10 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 %output application/java
 %var lang=flowVars.var_lang
 ---
-[lang] when (lang!=null and lang!="") otherwise p('yandex.lang') splitBy ","]]></dw:set-payload>
+p('yandex.lang') splitBy ","]]></dw:set-payload>
         </dw:transform-message>
         <validation:is-not-empty message="Languages used for translation not set" value="#[payload.get(0)]" doc:name="validate languages not empty"/>
         <logger message="Languages: #[payload]" level="INFO" doc:name="Log Languages found"/>
+        <set-variable variableName="var_compressList" value="#[[]]" doc:name="variable for translated quotes list"/>
     </sub-flow>
 </mule>
