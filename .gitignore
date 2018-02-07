@@ -11,3 +11,7 @@ qotd/\.mule/queue-tx-log/
 *.ttf
 
 *.css
+
+qotd/src/\.DS_Store
+
+qotd/dump\.rdb
